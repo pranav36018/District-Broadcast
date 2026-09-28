@@ -678,6 +678,11 @@ app.get('/api/reports/export/:type', (req, res) => {
   res.send(csv);
 });
 
+// Health check endpoint to keep Render instance awake 24/7
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', uptime: process.uptime(), timestamp: new Date().toISOString() });
+});
+
 // Unified single-port server (Live Vite HMR + Static build fallback on http://localhost:5000)
 async function startServer() {
   const clientRoot = path.join(__dirname, '..', 'client');
@@ -722,6 +727,14 @@ async function startServer() {
 
   app.listen(PORT, () => {
     console.log(`[Connect Karnataka] Unified Server running on http://localhost:${PORT}`);
+
+    // Automatic keep-alive ping every 10 minutes on cloud to prevent free-tier spin-down
+    if (process.env.RENDER || process.env.RENDER_EXTERNAL_URL) {
+      const externalUrl = process.env.RENDER_EXTERNAL_URL || 'https://district-broadcast.onrender.com';
+      setInterval(() => {
+        fetch(`${externalUrl}/api/health`).catch(() => {});
+      }, 10 * 60 * 1000);
+    }
   });
 }
 

@@ -684,7 +684,7 @@ async function startServer() {
   const viteNodePath = path.join(clientRoot, 'node_modules', 'vite', 'dist', 'node', 'index.js');
 
   let useViteMiddleware = false;
-  if (process.env.NODE_ENV !== 'production' && fs.existsSync(viteNodePath)) {
+  if (process.env.NODE_ENV !== 'production' && !process.env.RENDER && fs.existsSync(viteNodePath)) {
     try {
       process.chdir(clientRoot);
       const { createServer: createViteServer } = await import(pathToFileURL(viteNodePath).href);
